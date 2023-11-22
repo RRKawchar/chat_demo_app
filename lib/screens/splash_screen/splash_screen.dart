@@ -1,3 +1,4 @@
+import 'package:chat_app/main.dart';
 import 'package:chat_app/screens/auth/login_screen.dart';
 import 'package:chat_app/screens/home/home_screens.dart';
 import 'package:chat_app/utils/app_colors/app_colors.dart';
@@ -6,6 +7,7 @@ import 'package:chat_app/network/firebase_dabase.dart';
 import 'package:chat_app/utils/helper/helper_class.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,6 +22,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 1500), () {
+
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(systemNavigationBarColor: Colors.white)
+      );
+
       if(FirebaseDatabase.auth.currentUser !=null){
          kPrint("User : ${FirebaseDatabase.auth.currentUser}");
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeScreens()));
@@ -33,21 +40,21 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
+    mqSize = MediaQuery.of(context).size;
     return Scaffold(
       body: Stack(
         children: [
           Positioned(
-            left: size.width * .25,
-            top: size.width * .30,
-            width: size.width * .5,
+            left: mqSize.width * .25,
+            top: mqSize.width * .30,
+            width: mqSize.width * .5,
             child: Image.asset(
               KAssetsImage.messageIcon,
             ),
           ),
           Positioned(
-            bottom: size.width * .15,
-            width: size.width,
+            bottom: mqSize.width * .15,
+            width: mqSize.width,
             child: const Text(
               "Welcome to our chat app ❤️",
               textAlign: TextAlign.center,

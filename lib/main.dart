@@ -3,8 +3,9 @@ import 'package:chat_app/screens/splash_screen/splash_screen.dart';
 import 'package:chat_app/utils/theme/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+
+late Size mqSize;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ Future<void> main() async {
       appId: '1:820412691807:android:67576dee11465d0195f2ea',
       messagingSenderId: '820412691807',
       projectId: 'zoom-clone-c8045',
+      storageBucket: "com.example.chat_app",
     ),
   );
   runApp(const MyApp());
