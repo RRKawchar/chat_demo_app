@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chat_app/model/chat_user_model.dart';
+import 'package:chat_app/model/message_model.dart';
 import 'package:chat_app/utils/helper/helper_class.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -107,9 +108,30 @@ class FirebaseDatabase {
         .update({'image': me.image});
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessage() {
+  static String getConversionId(String id) => user.uid.hashCode <= id.hashCode
+      ? "${user.uid}_$id"
+      : "${id}_${user.uid}";
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(
+      ChatUserModel userModel) {
     return firestore
-        .collection("messages")
+        .collection('chats/${getConversionId(userModel.id)}/messages/')
         .snapshots();
+  }
+
+  static Future<void> sendMessage(ChatUserModel userModel, String msg) async {
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
+    final MessageModel messageModel = MessageModel(
+      msg: msg,
+      read: '',
+      told: userModel.id,
+      type: Type.text,
+      sent: time,
+      fromId: user.uid,
+    );
+
+    final ref =
+        firestore.collection("chat/${getConversionId(userModel.id)}/message");
+    await ref.doc().set(messageModel.toJson());
   }
 }

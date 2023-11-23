@@ -7,6 +7,7 @@ import 'package:chat_app/model/message_model.dart';
 import 'package:chat_app/network/firebase_dabase.dart';
 import 'package:chat_app/utils/helper/helper_class.dart';
 import 'package:chat_app/widgets/message_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,9 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List<MessageModel> _list = [];
+
+
+  final _textController=TextEditingController();
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -28,12 +32,12 @@ class _ChatScreenState extends State<ChatScreen> {
           automaticallyImplyLeading: false,
           flexibleSpace: _appBar(),
         ),
-        backgroundColor: Color.fromARGB(255, 234, 248, 255),
+        backgroundColor: const Color.fromARGB(255, 234, 248, 255),
         body: Column(
           children: [
             Expanded(
-              child: StreamBuilder(
-                stream: FirebaseDatabase.getAllMessage(),
+              child:StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: FirebaseDatabase.getAllMessages(widget.userModel),
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
@@ -44,26 +48,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
                     case ConnectionState.active:
                     case ConnectionState.done:
-                      final data = snapshot.data?.docs;
-                      kPrint("Data : ${jsonEncode(data![0].data())}");
-                      // _list =
-                      //     data?.map((e) => ChatUserModel.fromJson(e.data())).toList() ??
-                      //         [];
-                      _list.clear();
-                      _list.add(MessageModel(
-                          msg: 'Hello',
-                          read: '',
-                          told: 'xyz',
-                          type: Type.text,
-                          sent: '12.00 PM',
-                          fromId: FirebaseDatabase.user.uid));
-                      _list.add(MessageModel(
-                          msg: 'Hii',
-                          read: '',
-                          told: FirebaseDatabase.user.uid,
-                          type: Type.text,
-                          sent: '12.04 PM',
-                          fromId: 'xyz'));
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return const Center(
+                          child: Text("No data available."),
+                        );
+                      }
+
+                      final data = snapshot.data!.docs;
+                      kPrint("Data : ${jsonEncode(data[0].data())}");
+                      _list = data.map((e) => MessageModel.fromJson(e.data())).toList() ?? [];
 
                       if (_list.isNotEmpty) {
                         return ListView.builder(
@@ -86,6 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   }
                 },
               ),
+
             ),
             _chatInput(),
           ],
@@ -111,11 +105,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: Colors.blueAccent,
                     ),
                   ),
-                  const Expanded(
+                   Expanded(
                       child: TextField(
+                        controller: _textController,
                     keyboardType: TextInputType.multiline,
                     maxLines: null,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         hintText: "Type Something...",
                         hintStyle: TextStyle(
                           color: Colors.blueAccent,
@@ -149,7 +144,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 const EdgeInsets.only(top: 10, right: 5, left: 10, bottom: 10),
             shape: const CircleBorder(),
             color: Colors.green,
-            onPressed: () {},
+            onPressed: () {
+              if(_textController.text.isNotEmpty){
+                FirebaseDatabase.sendMessage(widget.userModel, _textController.text);
+                _textController.text="";
+              }
+
+            },
             child: const Icon(
               Icons.send,
               color: Colors.white,
